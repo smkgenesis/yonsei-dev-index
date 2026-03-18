@@ -1,6 +1,5 @@
 "use client";
 
-import type { FormEvent } from "react";
 import { useState } from "react";
 
 import { apiFetch } from "../../lib/api";
@@ -30,8 +29,7 @@ export function VerificationSettingsForm({
     setStatus(data);
   }
 
-  async function handleRequestCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function requestCode() {
     setRequesting(true);
     setError(null);
     setMessage(null);
@@ -49,8 +47,7 @@ export function VerificationSettingsForm({
     }
   }
 
-  async function handleConfirmCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function confirmCode() {
     setConfirming(true);
     setError(null);
     setMessage(null);
@@ -77,55 +74,65 @@ export function VerificationSettingsForm({
   return (
     <div className="settings-stack">
       <section className="panel settings-panel">
-        <div className="panel-header">
-          <p className="panel-title">Verification</p>
-          <p className="panel-meta">{status.verified ? "Verified" : "Not verified"}</p>
+        <div className="settings-form">
+          <div className="readonly-grid single-row">
+            <div className="readonly-item">
+              <span>Verified</span>
+              <strong>{status.verified ? "Yonsei Email Verified" : "Not verified"}</strong>
+            </div>
+            {status.verified && status.email ? (
+              <div className="readonly-item">
+                <span>Yonsei Email</span>
+                <strong>{status.email}</strong>
+              </div>
+            ) : null}
+          </div>
+
+          <p className="inline-note">{status.verification_notice}</p>
+
+          {status.verified ? null : (
+            <>
+              <label className="field">
+                <span>Yonsei Email</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@yonsei.ac.kr"
+                />
+              </label>
+              <button
+                className="apply-button"
+                type="button"
+                onClick={() => void requestCode()}
+                disabled={requesting}
+              >
+                {requesting ? "Sending..." : "Request verification code"}
+              </button>
+
+              <label className="field">
+                <span>Verification Code</span>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  placeholder="6-digit code"
+                />
+              </label>
+              <button
+                className="apply-button"
+                type="button"
+                onClick={() => void confirmCode()}
+                disabled={confirming}
+              >
+                {confirming ? "Confirming..." : "Confirm code"}
+              </button>
+            </>
+          )}
+
+          {error ? <p className="form-message error">{error}</p> : null}
+          {message ? <p className="form-message success">{message}</p> : null}
         </div>
-
-        <div className="verification-status">
-          <p className={`status-badge ${status.verified ? "verified" : ""}`}>
-            {status.verified ? "Yonsei Email Verified" : "Unverified"}
-          </p>
-          <p className="note">{status.verification_notice}</p>
-          {status.verified && status.email ? (
-            <p className="note">
-              Verified email: <strong>{status.email}</strong>
-            </p>
-          ) : null}
-        </div>
-
-        <form className="settings-form compact" onSubmit={handleRequestCode}>
-          <label className="field">
-            <span>Yonsei Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@yonsei.ac.kr"
-            />
-          </label>
-          <button className="apply-button" type="submit" disabled={requesting}>
-            {requesting ? "Sending..." : "Request verification code"}
-          </button>
-        </form>
-
-        <form className="settings-form compact" onSubmit={handleConfirmCode}>
-          <label className="field">
-            <span>Verification Code</span>
-            <input
-              type="text"
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              placeholder="6-digit code"
-            />
-          </label>
-          <button className="apply-button" type="submit" disabled={confirming}>
-            {confirming ? "Confirming..." : "Confirm code"}
-          </button>
-        </form>
-
-        {error ? <p className="form-message error">{error}</p> : null}
-        {message ? <p className="form-message success">{message}</p> : null}
       </section>
     </div>
   );

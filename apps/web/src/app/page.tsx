@@ -268,16 +268,8 @@ export default async function HomePage({
                           </a>
                         </td>
                         <td>{item.verified ? "Verified" : "-"}</td>
-                        <td>
-                          <span className="cell-text-truncate" title={item.name ?? "-"}>
-                            {item.name ?? "-"}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="cell-text-truncate" title={item.major ?? "-"}>
-                            {item.major ?? "-"}
-                          </span>
-                        </td>
+                        <td>{item.name ?? "-"}</td>
+                        <td>{item.major ?? "-"}</td>
                       </tr>
                     ))}
                   </tbody>

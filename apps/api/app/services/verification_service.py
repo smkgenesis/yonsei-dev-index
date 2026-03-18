@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -55,9 +55,61 @@ def _get_pending_request(db: Session, user_id) -> VerificationRequest | None:
     return db.scalars(stmt).first()
 
 
+def _get_latest_request_for_email(db: Session, email: str) -> VerificationRequest | None:
+    stmt = (
+        select(VerificationRequest)
+        .where(VerificationRequest.yonsei_email == email)
+        .order_by(VerificationRequest.created_at.desc())
+    )
+    return db.scalars(stmt).first()
+
+
+def _count_recent_requests_for_user(db: Session, user_id, now: datetime) -> int:
+    window_start = now - timedelta(days=1)
+    stmt = select(func.count()).where(
+        VerificationRequest.user_id == user_id,
+        VerificationRequest.created_at >= window_start,
+    )
+    return db.scalar(stmt) or 0
+
+
+def _ensure_email_is_available(db: Session, user: User, email: str) -> None:
+    stmt = select(Verification).where(
+        Verification.verified_email == email,
+        Verification.status == "verified",
+    )
+    existing = db.scalars(stmt).first()
+    if existing is not None and existing.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This Yonsei email is already verified by another account.",
+        )
+
+
 def request_verification_code(db: Session, user: User, email: str) -> dict[str, bool]:
     normalized_email = _validate_yonsei_email(email)
     now = _utcnow()
+    _ensure_email_is_available(db, user, normalized_email)
+
+    latest_for_email = _get_latest_request_for_email(db, normalized_email)
+    if latest_for_email is not None:
+        cooldown = timedelta(seconds=settings.verification_request_cooldown_seconds)
+        if latest_for_email.created_at + cooldown > now:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Please wait before requesting another code for this email.",
+            )
+
+    recent_request_count = _count_recent_requests_for_user(db, user.id, now)
+    if recent_request_count >= settings.verification_request_max_per_day:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Verification codes can only be requested "
+                f"{settings.verification_request_max_per_day} times per day."
+            ),
+        )
+
     existing = _get_pending_request(db, user.id)
 
     if existing is not None:

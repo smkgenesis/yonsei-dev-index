@@ -109,7 +109,7 @@ class Verification(UUIDPrimaryKeyMixin, Base):
         nullable=False,
         unique=True,
     )
-    verified_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    verified_email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
 

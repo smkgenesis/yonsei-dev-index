@@ -20,7 +20,6 @@ type ProfileResponse = {
 };
 
 type ProfileFormState = {
-  is_public: boolean;
   real_name: string;
   major: string;
   show_name: boolean;
@@ -30,7 +29,6 @@ type ProfileFormState = {
 export function ProfileSettingsForm({ initialProfile }: { initialProfile: ProfileResponse }) {
   const [profile, setProfile] = useState<ProfileResponse | null>(initialProfile);
   const [form, setForm] = useState<ProfileFormState>({
-    is_public: initialProfile.is_public,
     real_name: initialProfile.real_name ?? "",
     major: initialProfile.major ?? "",
     show_name: initialProfile.show_name,
@@ -52,7 +50,7 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
       const data = await apiFetch<ProfileResponse>("/me/profile", {
         method: "PATCH",
         body: JSON.stringify({
-          is_public: form.is_public,
+          is_public: profile.is_public,
           real_name: form.real_name,
           major: form.major,
           show_name: form.show_name,
@@ -61,7 +59,6 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
       });
       setProfile(data);
       setForm({
-        is_public: data.is_public,
         real_name: data.real_name ?? "",
         major: data.major ?? "",
         show_name: data.show_name,
@@ -102,7 +99,6 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
           });
       setProfile(data);
       setForm({
-        is_public: data.is_public,
         real_name: data.real_name ?? "",
         major: data.major ?? "",
         show_name: data.show_name,
@@ -200,15 +196,6 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
           <p className="inline-note">
             Verification only confirms control of a @yonsei.ac.kr email address.
           </p>
-
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={form.is_public}
-              onChange={(event) => setForm((prev) => ({ ...prev, is_public: event.target.checked }))}
-            />
-            <span>Publicly list my profile in the directory</span>
-          </label>
 
           <label className="field">
             <span>Name</span>

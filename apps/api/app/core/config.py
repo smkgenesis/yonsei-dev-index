@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     verification_code_ttl_minutes: int = 10
     verification_max_attempts: int = 5
     verification_request_cooldown_seconds: int = 60
+    verification_request_max_per_day: int = 5
     profile_update_max_per_day: int = 5
 
     model_config = SettingsConfigDict(
