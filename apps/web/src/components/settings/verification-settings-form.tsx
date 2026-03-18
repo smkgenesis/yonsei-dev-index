@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { apiFetch } from "../../lib/api";
 
@@ -12,45 +12,18 @@ type VerificationStatus = {
   verification_notice: string;
 };
 
-export function VerificationSettingsForm() {
-  const [status, setStatus] = useState<VerificationStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+export function VerificationSettingsForm({
+  initialStatus,
+}: {
+  initialStatus: VerificationStatus;
+}) {
+  const [status, setStatus] = useState<VerificationStatus | null>(initialStatus);
   const [requesting, setRequesting] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialStatus.email ?? "");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadStatus() {
-      try {
-        const data = await apiFetch<VerificationStatus>("/me/verification");
-        if (cancelled) {
-          return;
-        }
-        setStatus(data);
-        if (data.email) {
-          setEmail(data.email);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Failed to load verification.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadStatus();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   async function refreshStatus() {
     const data = await apiFetch<VerificationStatus>("/me/verification");
@@ -95,10 +68,6 @@ export function VerificationSettingsForm() {
     } finally {
       setConfirming(false);
     }
-  }
-
-  if (loading) {
-    return <div className="settings-state">Loading verification settings...</div>;
   }
 
   if (!status) {

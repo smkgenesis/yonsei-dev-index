@@ -1,8 +1,24 @@
 import Link from "next/link";
 
 import { ProfileSettingsForm } from "@/components/settings/profile-settings-form";
+import { serverApiFetch } from "@/lib/server-api";
 
-export default function ProfileSettingsPage() {
+type ProfileResponse = {
+  github_nickname: string | null;
+  github_link: string | null;
+  is_public: boolean;
+  verified: boolean;
+  real_name: string | null;
+  major: string | null;
+  show_name: boolean;
+  show_major: boolean;
+  self_reported_notice: string;
+  verification_notice: string;
+};
+
+export default async function ProfileSettingsPage() {
+  const profile = await serverApiFetch<ProfileResponse>("/me/profile");
+
   return (
     <main className="page">
       <section className="shell settings-shell">
@@ -19,7 +35,7 @@ export default function ProfileSettingsPage() {
             <Link href="/settings/verification">Verification</Link>
           </nav>
         </header>
-        <ProfileSettingsForm />
+        <ProfileSettingsForm initialProfile={profile} />
       </section>
     </main>
   );

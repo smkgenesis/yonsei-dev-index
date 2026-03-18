@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 import { apiFetch } from "../../lib/api";
@@ -35,49 +35,20 @@ const initialForm: ProfileFormState = {
   show_major: false,
 };
 
-export function ProfileSettingsForm() {
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [form, setForm] = useState<ProfileFormState>(initialForm);
-  const [loading, setLoading] = useState(true);
+export function ProfileSettingsForm({ initialProfile }: { initialProfile: ProfileResponse }) {
+  const [profile, setProfile] = useState<ProfileResponse | null>(initialProfile);
+  const [form, setForm] = useState<ProfileFormState>({
+    is_public: initialProfile.is_public,
+    real_name: initialProfile.real_name ?? "",
+    major: initialProfile.major ?? "",
+    show_name: initialProfile.show_name,
+    show_major: initialProfile.show_major,
+  });
   const [saving, setSaving] = useState(false);
   const [hiding, setHiding] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProfile() {
-      try {
-        const data = await apiFetch<ProfileResponse>("/me/profile");
-        if (cancelled) {
-          return;
-        }
-        setProfile(data);
-        setForm({
-          is_public: data.is_public,
-          real_name: data.real_name ?? "",
-          major: data.major ?? "",
-          show_name: data.show_name,
-          show_major: data.show_major,
-        });
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Failed to load profile.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadProfile();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -162,10 +133,6 @@ export function ProfileSettingsForm() {
       );
       setDisconnecting(false);
     }
-  }
-
-  if (loading) {
-    return <div className="settings-state">Loading profile settings...</div>;
   }
 
   if (!profile) {
