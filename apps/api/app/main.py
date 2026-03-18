@@ -9,7 +9,12 @@ def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.app_web_url],
+        allow_origins=[
+            settings.app_web_url,
+            "http://localhost:3000",
+            "https://ysdevidx.com",
+            "https://www.ysdevidx.com",
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
