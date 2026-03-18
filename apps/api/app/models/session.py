@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, ForeignKey, Index, String
@@ -9,6 +10,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.mixins import UUIDPrimaryKeyMixin
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class SessionModel(UUIDPrimaryKeyMixin, Base):

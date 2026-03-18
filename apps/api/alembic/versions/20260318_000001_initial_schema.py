@@ -7,8 +7,8 @@ Create Date: 2026-03-18 23:40:00
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -41,7 +41,11 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("provider", "provider_user_id", name="uq_oauth_provider_user_id"),
-        sa.UniqueConstraint("provider", "github_username", name="uq_oauth_provider_github_username"),
+        sa.UniqueConstraint(
+            "provider",
+            "github_username",
+            name="uq_oauth_provider_github_username",
+        ),
     )
     op.create_index(
         "ix_oauth_accounts_github_username", "oauth_accounts", ["github_username"], unique=False

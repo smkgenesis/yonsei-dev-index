@@ -190,7 +190,9 @@ def post_verification_email_confirm(
 
 
 @router.get("/me/verification", response_model=VerificationStatusResponse)
-def get_my_verification(current_user: User = Depends(require_current_user)) -> VerificationStatusResponse:
+def get_my_verification(
+    current_user: User = Depends(require_current_user),
+) -> VerificationStatusResponse:
     return get_verification_status(current_user)
 
 

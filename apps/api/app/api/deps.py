@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import Cookie, Depends
-from fastapi import HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
@@ -25,8 +23,8 @@ def hash_session_token(token: str) -> str:
 
 def get_current_user(
     db: Session = Depends(get_db),
-    session_token: Optional[str] = Cookie(default=None, alias=settings.session_cookie_name),
-) -> Optional[User]:
+    session_token: str | None = Cookie(default=None, alias=settings.session_cookie_name),
+) -> User | None:
     if not session_token:
         return None
 
@@ -55,7 +53,10 @@ def get_current_user(
     return session_model.user
 
 
-def require_current_user(current_user: Optional[User] = Depends(get_current_user)) -> User:
+def require_current_user(current_user: User | None = Depends(get_current_user)) -> User:
     if current_user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required.",
+        )
     return current_user

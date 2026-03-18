@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi import Response
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.api.deps import hash_session_token
+from app.core.config import settings
 from app.models.session import SessionModel
 from app.models.user import User
 

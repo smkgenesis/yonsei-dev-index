@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func
@@ -11,6 +11,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
+if TYPE_CHECKING:
+    from app.models.session import SessionModel
+
 
 class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "users"
@@ -18,15 +21,32 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     last_login_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=func.now(), server_default=func.now()
     )
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    is_public: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
 
-    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    profile: Mapped[Optional["Profile"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    verification: Mapped[Optional["Verification"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    profile: Mapped["Profile | None"] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    verification: Mapped["Verification | None"] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
     verification_requests: Mapped[list["VerificationRequest"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    sessions: Mapped[list["SessionModel"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    sessions: Mapped[list["SessionModel"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (Index("ix_users_created_at", "created_at"),)
 
@@ -57,10 +77,20 @@ class Profile(Base):
     user_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    real_name: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    major: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    show_name: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
-    show_major: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    real_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    major: Mapped[str | None] = mapped_column(Text, nullable=True)
+    show_name: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+    show_major: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
 
     user: Mapped["User"] = relationship(back_populates="profile")
 
@@ -69,7 +99,10 @@ class Verification(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "verifications"
 
     user_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+        PGUUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
     )
     verified_email: Mapped[str] = mapped_column(String(320), nullable=False)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
