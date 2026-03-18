@@ -76,12 +76,17 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
   }
 
   async function handleHideListing() {
+    if (!profile) {
+      return;
+    }
+
+    const currentProfile = profile;
     setHiding(true);
     setError(null);
     setMessage(null);
 
     try {
-      const data = profile.is_public
+      const data = currentProfile.is_public
         ? await apiFetch<ProfileResponse>("/me/profile/hide", {
             method: "POST",
           })
@@ -112,7 +117,7 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
       setError(
         hideError instanceof Error
           ? hideError.message
-          : profile.is_public
+          : currentProfile.is_public
             ? "Failed to hide listing."
             : "Failed to show listing.",
       );
