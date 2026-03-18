@@ -3,7 +3,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "../../lib/api";
 
 type VerificationStatus = {
   verified: boolean;
