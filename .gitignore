@@ -213,3 +213,7 @@ npm-debug.log*
 
 # Local data
 .DS_Store
+
+# Keep tracked web source lib directory
+!apps/web/src/lib/
+!apps/web/src/lib/**
