@@ -183,7 +183,7 @@ def hide_my_profile(
         show_name=current_user.profile.show_name if current_user.profile else False,
         show_major=current_user.profile.show_major if current_user.profile else False,
     )
-    return update_profile(db, current_user, payload)
+    return update_profile(db, current_user, payload, count_toward_limit=False)
 
 
 @router.delete("/me/account")

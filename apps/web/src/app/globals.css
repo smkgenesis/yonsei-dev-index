@@ -227,6 +227,13 @@ a {
   text-underline-offset: 0.18em;
 }
 
+.cell-text-truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -260,6 +267,15 @@ a {
   gap: 24px;
   align-items: flex-start;
   padding: 10px 0 20px;
+}
+
+.settings-header.compact {
+  align-items: center;
+  padding-bottom: 14px;
+}
+
+.settings-header.compact h1 {
+  margin: 0;
 }
 
 .settings-nav {
@@ -298,6 +314,10 @@ a {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.readonly-grid.single-row {
+  align-items: stretch;
 }
 
 .readonly-item {
@@ -371,6 +391,12 @@ a {
   font-size: 0.82rem;
 }
 
+.inline-note {
+  margin: -2px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .form-message {
   margin: 0;
   font-size: 0.94rem;
@@ -397,9 +423,21 @@ a {
   background: #fff6f4;
 }
 
+.action-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .danger-title {
   margin: 0 0 8px;
   font-weight: 600;
+}
+
+.danger-copy {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .verification-status {
@@ -439,6 +477,17 @@ a {
 
   .pagination {
     flex-direction: column;
+  }
+
+  .directory-table {
+    table-layout: fixed;
+  }
+
+  .directory-table th:nth-child(4),
+  .directory-table td:nth-child(4),
+  .directory-table th:nth-child(5),
+  .directory-table td:nth-child(5) {
+    width: 88px;
   }
 
   .settings-header,

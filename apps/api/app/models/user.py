@@ -79,6 +79,11 @@ class Profile(Base):
     )
     real_name: Mapped[str | None] = mapped_column(Text, nullable=True)
     major: Mapped[str | None] = mapped_column(Text, nullable=True)
+    settings_update_count: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
+    settings_update_window_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     show_name: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

@@ -285,7 +285,7 @@ Response:
 
 Query params:
 
-- `sort`: `nickname_asc` | `oldest` | `newest`
+- `sort`: `nickname_asc` | `nickname_desc` | `oldest` | `newest`
 - `page`: integer, default `1`
 - `page_size`: integer, default `50`, max `100`
 - `verified`: optional boolean filter
@@ -294,6 +294,7 @@ Query params:
 Sorting rules:
 
 - `nickname_asc`: order by `github_username` ascending
+- `nickname_desc`: order by `github_username` descending
 - `oldest`: order by `users.created_at` ascending
 - `newest`: order by `users.created_at` descending
 
@@ -482,7 +483,8 @@ Sort options:
 
 - `Newest First`
 - `Oldest First`
-- `GitHubNickname A-Z`
+- `GitHub Nickname A-Z`
+- `GitHub Nickname Z-A`
 
 ### 7.2 Settings `/settings/profile`
 

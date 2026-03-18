@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models.user import OAuthAccount, Profile, User, Verification
 
-SortOption = Literal["nickname_asc", "oldest", "newest"]
+SortOption = Literal["nickname_asc", "nickname_desc", "oldest", "newest"]
 
 
 def _build_directory_base_query(
@@ -61,6 +61,8 @@ def _build_directory_base_query(
 def _apply_sort(stmt: Select, sort: SortOption) -> Select:
     if sort == "nickname_asc":
         return stmt.order_by(asc(OAuthAccount.github_username))
+    if sort == "nickname_desc":
+        return stmt.order_by(desc(OAuthAccount.github_username))
     if sort == "oldest":
         return stmt.order_by(asc(User.created_at))
     return stmt.order_by(desc(User.created_at))

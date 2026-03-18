@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
-type SortOption = "newest" | "oldest" | "nickname_asc";
+type SortOption = "newest" | "oldest" | "nickname_asc" | "nickname_desc";
 
 type DirectoryItem = {
   github_nickname: string;
@@ -35,10 +35,11 @@ const sortLabels: Record<SortOption, string> = {
   newest: "Newest First",
   oldest: "Oldest First",
   nickname_asc: "GitHub Nickname A-Z",
+  nickname_desc: "GitHub Nickname Z-A",
 };
 
 function normalizeSort(sort?: string): SortOption {
-  if (sort === "oldest" || sort === "nickname_asc") {
+  if (sort === "oldest" || sort === "nickname_asc" || sort === "nickname_desc") {
     return sort;
   }
   return "newest";
@@ -267,8 +268,16 @@ export default async function HomePage({
                           </a>
                         </td>
                         <td>{item.verified ? "Verified" : "-"}</td>
-                        <td>{item.name ?? "-"}</td>
-                        <td>{item.major ?? "-"}</td>
+                        <td>
+                          <span className="cell-text-truncate" title={item.name ?? "-"}>
+                            {item.name ?? "-"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="cell-text-truncate" title={item.major ?? "-"}>
+                            {item.major ?? "-"}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

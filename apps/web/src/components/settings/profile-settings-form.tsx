@@ -89,9 +89,20 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
     setMessage(null);
 
     try {
-      const data = await apiFetch<ProfileResponse>("/me/profile/hide", {
-        method: "POST",
-      });
+      const data = profile.is_public
+        ? await apiFetch<ProfileResponse>("/me/profile/hide", {
+            method: "POST",
+          })
+        : await apiFetch<ProfileResponse>("/me/profile", {
+            method: "PATCH",
+            body: JSON.stringify({
+              is_public: true,
+              real_name: form.real_name,
+              major: form.major,
+              show_name: form.show_name,
+              show_major: form.show_major,
+            }),
+          });
       setProfile(data);
       setForm({
         is_public: data.is_public,
@@ -100,9 +111,19 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
         show_name: data.show_name,
         show_major: data.show_major,
       });
-      setMessage("Your listing is now hidden from the directory.");
+      setMessage(
+        data.is_public
+          ? "Your listing is public again."
+          : "Your listing is now hidden from the directory.",
+      );
     } catch (hideError) {
-      setError(hideError instanceof Error ? hideError.message : "Failed to hide listing.");
+      setError(
+        hideError instanceof Error
+          ? hideError.message
+          : profile.is_public
+            ? "Failed to hide listing."
+            : "Failed to show listing.",
+      );
     } finally {
       setHiding(false);
     }
@@ -142,10 +163,6 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
   return (
     <div className="settings-stack">
       <section className="panel settings-panel">
-        <div className="panel-header">
-          <p className="panel-title">My Profile</p>
-          <p className="panel-meta">{profile.github_nickname ?? "-"}</p>
-        </div>
         <form className="settings-form" onSubmit={handleSubmit}>
           <div className="readonly-grid">
             <div className="readonly-item">
@@ -162,18 +179,30 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
                 <strong>-</strong>
               )}
             </div>
+          </div>
+
+          <p className="inline-note">
+            GitHub nickname and GitHub link are fixed by GitHub login and cannot be edited here.
+          </p>
+
+          <div className="readonly-grid single-row">
             <div className="readonly-item">
               <span>Verified</span>
               <strong>{profile.verified ? "Yonsei Email Verified" : "Not verified"}</strong>
             </div>
+            {!profile.verified ? (
+              <div className="readonly-item action-item">
+                <span>Verification</span>
+                <Link className="secondary-button" href="/settings/verification">
+                  Verify Yonsei Email
+                </Link>
+              </div>
+            ) : null}
           </div>
 
-          <div className="notice-block compact">
-            <p>GitHub nickname and GitHub link are fixed by GitHub login and cannot be edited here.</p>
-            <p>
-              Verification is managed in <Link href="/settings/verification">Verification</Link>.
-            </p>
-          </div>
+          <p className="inline-note">
+            Verification only confirms control of a @yonsei.ac.kr email address.
+          </p>
 
           <label className="checkbox-row">
             <input
@@ -226,10 +255,7 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
             <span>Show my major in the public directory</span>
           </label>
 
-          <div className="notice-block">
-            <p>{profile.self_reported_notice}</p>
-            <p>{profile.verification_notice}</p>
-          </div>
+          <p className="inline-note">{profile.self_reported_notice}</p>
 
           {error ? <p className="form-message error">{error}</p> : null}
           {message ? <p className="form-message success">{message}</p> : null}
@@ -243,13 +269,14 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
       <section className="panel settings-panel">
         <div className="panel-header">
           <p className="panel-title">Danger Zone</p>
-          <p className="panel-meta">Visibility and account actions</p>
         </div>
         <div className="settings-form">
           <div className="danger-block">
-            <p className="danger-title">Hide listing</p>
-            <p className="note">
-              Remove your row from the public directory without deleting your account data.
+            <p className="danger-title">{profile.is_public ? "Hide listing" : "Show listing"}</p>
+            <p className="danger-copy">
+              {profile.is_public
+                ? "Remove your row from the public directory without deleting your account data."
+                : "Make your row visible in the public directory again."}
             </p>
             <button
               className="secondary-button"
@@ -257,13 +284,19 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
               onClick={handleHideListing}
               disabled={hiding}
             >
-              {hiding ? "Hiding..." : "Hide my listing"}
+              {hiding
+                ? profile.is_public
+                  ? "Hiding..."
+                  : "Showing..."
+                : profile.is_public
+                  ? "Hide my listing"
+                  : "Show my listing"}
             </button>
           </div>
 
           <div className="danger-block">
             <p className="danger-title">Disconnect GitHub</p>
-            <p className="note">
+            <p className="danger-copy">
               Delete your directory entry and sign out. You can register again later with GitHub.
             </p>
             <button
