@@ -27,14 +27,6 @@ type ProfileFormState = {
   show_major: boolean;
 };
 
-const initialForm: ProfileFormState = {
-  is_public: true,
-  real_name: "",
-  major: "",
-  show_name: false,
-  show_major: false,
-};
-
 export function ProfileSettingsForm({ initialProfile }: { initialProfile: ProfileResponse }) {
   const [profile, setProfile] = useState<ProfileResponse | null>(initialProfile);
   const [form, setForm] = useState<ProfileFormState>({
