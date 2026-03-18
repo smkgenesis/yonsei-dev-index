@@ -42,6 +42,11 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!profile) {
+      return;
+    }
+
+    const currentProfile = profile;
     setSaving(true);
     setError(null);
     setMessage(null);
@@ -50,7 +55,7 @@ export function ProfileSettingsForm({ initialProfile }: { initialProfile: Profil
       const data = await apiFetch<ProfileResponse>("/me/profile", {
         method: "PATCH",
         body: JSON.stringify({
-          is_public: profile.is_public,
+          is_public: currentProfile.is_public,
           real_name: form.real_name,
           major: form.major,
           show_name: form.show_name,
