@@ -9,9 +9,9 @@ export default function ProfileSettingsPage() {
         <header className="settings-header">
           <div>
             <p className="eyebrow">Settings</p>
-            <h1>Profile Settings</h1>
+            <h1>My Profile</h1>
             <p className="lede">
-              Control directory visibility and optional self-reported fields for your public row.
+              Manage your directory entry, optional self-reported fields, and visibility.
             </p>
           </div>
           <nav className="settings-nav" aria-label="Settings navigation">

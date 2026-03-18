@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 type SortOption = "newest" | "oldest" | "nickname_asc";
 
@@ -19,6 +20,10 @@ type DirectoryResponse = {
   sort: SortOption;
 };
 
+type AuthMeResponse = {
+  authenticated: boolean;
+};
+
 type SearchParams = {
   sort?: string;
   page?: string;
@@ -29,7 +34,7 @@ type SearchParams = {
 const sortLabels: Record<SortOption, string> = {
   newest: "Newest First",
   oldest: "Oldest First",
-  nickname_asc: "GitHubNickname A-Z",
+  nickname_asc: "GitHub Nickname A-Z",
 };
 
 function normalizeSort(sort?: string): SortOption {
@@ -117,6 +122,23 @@ async function getDirectoryData({
   return response.json();
 }
 
+async function getAuthState(): Promise<AuthMeResponse | null> {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+
+  const response = await fetch(`${apiBaseUrl}/auth/me`, {
+    cache: "no-store",
+    headers: cookieHeader ? { Cookie: cookieHeader } : {},
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+}
+
 export default async function HomePage({
   searchParams,
 }: {
@@ -129,6 +151,8 @@ export default async function HomePage({
   const loginHref = `${
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
   }/auth/github/start`;
+  const authState = await getAuthState();
+  const profileHref = "/settings/profile";
 
   let data: DirectoryResponse | null = null;
   let loadError = false;
@@ -157,9 +181,15 @@ export default async function HomePage({
               Major are optional self-reported fields.
             </p>
           </div>
-          <a className="login-button" href={loginHref}>
-            Register with GitHub
-          </a>
+          {authState?.authenticated ? (
+            <Link className="login-button" href={profileHref}>
+              My Profile
+            </Link>
+          ) : (
+            <a className="login-button" href={loginHref}>
+              Register with GitHub
+            </a>
+          )}
         </header>
 
         <section className="panel controls-panel">
@@ -216,8 +246,8 @@ export default async function HomePage({
                 <table className="directory-table">
                   <thead>
                     <tr>
-                      <th>GitHubNickname</th>
-                      <th>GitHubLink</th>
+                      <th>GitHub Nickname</th>
+                      <th>GitHub Link</th>
                       <th>Verified</th>
                       <th>Name</th>
                       <th>Major</th>

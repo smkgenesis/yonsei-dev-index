@@ -171,6 +171,34 @@ def patch_my_profile(
     return update_profile(db, current_user, payload)
 
 
+@router.post("/me/profile/hide")
+def hide_my_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_current_user),
+) -> ProfileResponse:
+    payload = ProfileUpdateRequest(
+        is_public=False,
+        real_name=current_user.profile.real_name if current_user.profile else None,
+        major=current_user.profile.major if current_user.profile else None,
+        show_name=current_user.profile.show_name if current_user.profile else False,
+        show_major=current_user.profile.show_major if current_user.profile else False,
+    )
+    return update_profile(db, current_user, payload)
+
+
+@router.delete("/me/account")
+def delete_my_account(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_current_user),
+) -> Response:
+    db.delete(current_user)
+    db.commit()
+
+    response = JSONResponse({"ok": True})
+    clear_session_cookie(response)
+    return response
+
+
 @router.post("/me/verification/email/request")
 def post_verification_email_request(
     payload: VerificationRequestPayload,

@@ -80,7 +80,9 @@ a {
 
 .login-button,
 .apply-button,
-.page-link {
+.page-link,
+.secondary-button,
+.danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -95,6 +97,17 @@ a {
 
 .login-button {
   white-space: nowrap;
+}
+
+.secondary-button {
+  background: var(--panel);
+  color: var(--fg);
+}
+
+.danger-button {
+  background: #8e211a;
+  border-color: #8e211a;
+  color: #fff7f5;
 }
 
 .panel {
@@ -349,6 +362,15 @@ a {
   margin-top: 8px;
 }
 
+.notice-block.compact {
+  padding: 10px 12px;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .form-message {
   margin: 0;
   font-size: 0.94rem;
@@ -367,6 +389,17 @@ a {
   padding: 22px 14px;
   border: 1px solid var(--line);
   background: var(--panel);
+}
+
+.danger-block {
+  padding: 14px;
+  border: 1px solid #d9c3bc;
+  background: #fff6f4;
+}
+
+.danger-title {
+  margin: 0 0 8px;
+  font-weight: 600;
 }
 
 .verification-status {

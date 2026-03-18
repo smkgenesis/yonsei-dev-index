@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { apiFetch } from "../../lib/api";
 
@@ -39,6 +40,8 @@ export function ProfileSettingsForm() {
   const [form, setForm] = useState<ProfileFormState>(initialForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -109,6 +112,58 @@ export function ProfileSettingsForm() {
     }
   }
 
+  async function handleHideListing() {
+    setHiding(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const data = await apiFetch<ProfileResponse>("/me/profile/hide", {
+        method: "POST",
+      });
+      setProfile(data);
+      setForm({
+        is_public: data.is_public,
+        real_name: data.real_name ?? "",
+        major: data.major ?? "",
+        show_name: data.show_name,
+        show_major: data.show_major,
+      });
+      setMessage("Your listing is now hidden from the directory.");
+    } catch (hideError) {
+      setError(hideError instanceof Error ? hideError.message : "Failed to hide listing.");
+    } finally {
+      setHiding(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    const confirmed = window.confirm(
+      "Disconnect GitHub and remove your directory entry? You can register again later by logging in with GitHub.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDisconnecting(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      await apiFetch<{ ok: boolean }>("/me/account", {
+        method: "DELETE",
+      });
+      window.location.href = "/";
+    } catch (disconnectError) {
+      setError(
+        disconnectError instanceof Error
+          ? disconnectError.message
+          : "Failed to disconnect GitHub account.",
+      );
+      setDisconnecting(false);
+    }
+  }
+
   if (loading) {
     return <div className="settings-state">Loading profile settings...</div>;
   }
@@ -121,17 +176,17 @@ export function ProfileSettingsForm() {
     <div className="settings-stack">
       <section className="panel settings-panel">
         <div className="panel-header">
-          <p className="panel-title">Profile</p>
+          <p className="panel-title">My Profile</p>
           <p className="panel-meta">{profile.github_nickname ?? "-"}</p>
         </div>
         <form className="settings-form" onSubmit={handleSubmit}>
           <div className="readonly-grid">
             <div className="readonly-item">
-              <span>GitHubNickname</span>
+              <span>GitHub Nickname</span>
               <strong>{profile.github_nickname ?? "-"}</strong>
             </div>
             <div className="readonly-item">
-              <span>GitHubLink</span>
+              <span>GitHub Link</span>
               {profile.github_link ? (
                 <a href={profile.github_link} target="_blank" rel="noreferrer">
                   {profile.github_link.replace(/^https?:\/\//, "")}
@@ -140,6 +195,17 @@ export function ProfileSettingsForm() {
                 <strong>-</strong>
               )}
             </div>
+            <div className="readonly-item">
+              <span>Verified</span>
+              <strong>{profile.verified ? "Yonsei Email Verified" : "Not verified"}</strong>
+            </div>
+          </div>
+
+          <div className="notice-block compact">
+            <p>GitHub nickname and GitHub link are fixed by GitHub login and cannot be edited here.</p>
+            <p>
+              Verification is managed in <Link href="/settings/verification">Verification</Link>.
+            </p>
           </div>
 
           <label className="checkbox-row">
@@ -155,10 +221,12 @@ export function ProfileSettingsForm() {
             <span>Name</span>
             <input
               type="text"
+              maxLength={10}
               value={form.real_name}
               onChange={(event) => setForm((prev) => ({ ...prev, real_name: event.target.value }))}
               placeholder="Optional self-reported name"
             />
+            <small className="field-hint">{form.real_name.length}/10</small>
           </label>
 
           <label className="checkbox-row">
@@ -174,10 +242,12 @@ export function ProfileSettingsForm() {
             <span>Major</span>
             <input
               type="text"
+              maxLength={20}
               value={form.major}
               onChange={(event) => setForm((prev) => ({ ...prev, major: event.target.value }))}
               placeholder="Optional self-reported major"
             />
+            <small className="field-hint">{form.major.length}/20</small>
           </label>
 
           <label className="checkbox-row">
@@ -201,6 +271,44 @@ export function ProfileSettingsForm() {
             {saving ? "Saving..." : "Save profile settings"}
           </button>
         </form>
+      </section>
+
+      <section className="panel settings-panel">
+        <div className="panel-header">
+          <p className="panel-title">Danger Zone</p>
+          <p className="panel-meta">Visibility and account actions</p>
+        </div>
+        <div className="settings-form">
+          <div className="danger-block">
+            <p className="danger-title">Hide listing</p>
+            <p className="note">
+              Remove your row from the public directory without deleting your account data.
+            </p>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={handleHideListing}
+              disabled={hiding}
+            >
+              {hiding ? "Hiding..." : "Hide my listing"}
+            </button>
+          </div>
+
+          <div className="danger-block">
+            <p className="danger-title">Disconnect GitHub</p>
+            <p className="note">
+              Delete your directory entry and sign out. You can register again later with GitHub.
+            </p>
+            <button
+              className="danger-button"
+              type="button"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+            >
+              {disconnecting ? "Disconnecting..." : "Disconnect GitHub"}
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   );

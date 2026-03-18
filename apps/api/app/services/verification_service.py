@@ -80,9 +80,17 @@ def request_verification_code(db: Session, user: User, email: str) -> dict[str, 
         created_at=now,
     )
     db.add(verification_request)
-    db.commit()
 
-    send_verification_email(to_email=normalized_email, code=code)
+    try:
+        send_verification_email(to_email=normalized_email, code=code)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to send verification email.",
+        ) from exc
+
+    db.commit()
     return {"ok": True}
 
 
