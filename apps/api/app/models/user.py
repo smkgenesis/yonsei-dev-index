@@ -1,0 +1,96 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Optional
+from uuid import UUID
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base
+from app.models.mixins import TimestampMixin, UUIDPrimaryKeyMixin
+
+
+class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "users"
+
+    last_login_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=func.now(), server_default=func.now()
+    )
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    profile: Mapped[Optional["Profile"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    verification: Mapped[Optional["Verification"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    verification_requests: Mapped[list["VerificationRequest"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    sessions: Mapped[list["SessionModel"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+    __table_args__ = (Index("ix_users_created_at", "created_at"),)
+
+
+class OAuthAccount(UUIDPrimaryKeyMixin, Base):
+    __tablename__ = "oauth_accounts"
+
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    github_username: Mapped[str] = mapped_column(String(255), nullable=False)
+    github_url: Mapped[str] = mapped_column(Text, nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="oauth_accounts")
+
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_user_id", name="uq_oauth_provider_user_id"),
+        UniqueConstraint("provider", "github_username", name="uq_oauth_provider_github_username"),
+        Index("ix_oauth_accounts_github_username", "github_username"),
+    )
+
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    real_name: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    major: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    show_name: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    show_major: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+
+    user: Mapped["User"] = relationship(back_populates="profile")
+
+
+class Verification(UUIDPrimaryKeyMixin, Base):
+    __tablename__ = "verifications"
+
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    verified_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="verification")
+
+
+class VerificationRequest(UUIDPrimaryKeyMixin, Base):
+    __tablename__ = "verification_requests"
+
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    yonsei_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    attempt_count: Mapped[int] = mapped_column(nullable=False, default=0, server_default="0")
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=func.now(), server_default=func.now()
+    )
+
+    user: Mapped["User"] = relationship(back_populates="verification_requests")

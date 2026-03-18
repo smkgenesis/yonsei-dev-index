@@ -1,0 +1,416 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f1e6;
+  --panel: #fbf8f1;
+  --line: #d5d0c4;
+  --fg: #171512;
+  --muted: #6e685d;
+  --accent: #a12118;
+  --accent-soft: #efe1dd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28px 14px 56px;
+}
+
+.shell {
+  max-width: 1220px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.masthead {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0 20px;
+}
+
+.masthead-copy {
+  max-width: 760px;
+}
+
+.masthead h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2.3rem, 5vw, 4.25rem);
+  line-height: 0.95;
+}
+
+.lede {
+  margin: 0 0 12px;
+  max-width: 60ch;
+  font-size: 1.04rem;
+  line-height: 1.55;
+}
+
+.note {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.login-button,
+.apply-button,
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid var(--fg);
+  background: var(--fg);
+  color: #f8f3ea;
+  padding: 0 16px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.login-button {
+  white-space: nowrap;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.controls-panel {
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 190px minmax(240px, 1fr) 160px 120px;
+  gap: 12px;
+  align-items: end;
+}
+
+.control {
+  display: grid;
+  gap: 6px;
+}
+
+.control span,
+.checkbox-control span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.control select,
+.control input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--fg);
+  font: inherit;
+}
+
+.checkbox-control {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 42px;
+}
+
+.checkbox-control input {
+  width: 16px;
+  height: 16px;
+}
+
+.table-panel {
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #f3ede2 0%, #f9f5eb 100%);
+}
+
+.panel-title,
+.panel-meta {
+  margin: 0;
+}
+
+.panel-title {
+  font-weight: 600;
+}
+
+.panel-meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.directory-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.directory-table th,
+.directory-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  text-align: left;
+  font-size: 0.98rem;
+}
+
+.directory-table th {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #f9f4ea;
+}
+
+.directory-table td:first-child a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.directory-table td:nth-child(2) a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+.page-status {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.page-link.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.empty-state {
+  padding: 40px 16px;
+  color: var(--muted);
+}
+
+.settings-shell {
+  max-width: 860px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 10px 0 20px;
+}
+
+.settings-nav {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-nav a {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 10px 12px;
+  font-size: 0.94rem;
+}
+
+.settings-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-panel {
+  overflow: hidden;
+}
+
+.settings-form {
+  display: grid;
+  gap: 14px;
+  padding: 16px 14px 18px;
+}
+
+.settings-form.compact {
+  padding-top: 0;
+}
+
+.readonly-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.readonly-item {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+}
+
+.readonly-item span,
+.field span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.readonly-item strong,
+.readonly-item a {
+  overflow-wrap: anywhere;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--fg);
+  font: inherit;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.notice-block {
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fff8ea;
+  color: var(--muted);
+}
+
+.notice-block p {
+  margin: 0;
+}
+
+.notice-block p + p {
+  margin-top: 8px;
+}
+
+.form-message {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.form-message.error,
+.settings-state.error {
+  color: #8e211a;
+}
+
+.form-message.success {
+  color: #2f5d30;
+}
+
+.settings-state {
+  padding: 22px 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.verification-status {
+  padding: 16px 14px 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: #f3ede2;
+  margin: 0 0 12px;
+}
+
+.status-badge.verified {
+  border-color: #2f5d30;
+  background: #e6f0e2;
+  color: #234523;
+}
+
+@media (max-width: 900px) {
+  .masthead {
+    flex-direction: column;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .login-button,
+  .apply-button,
+  .page-link {
+    width: 100%;
+  }
+
+  .pagination {
+    flex-direction: column;
+  }
+
+  .settings-header,
+  .readonly-grid {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
