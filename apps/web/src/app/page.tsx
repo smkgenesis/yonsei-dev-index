@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { DirectoryLoadingState } from "@/components/directory-loading-state";
 
 type SortOption = "newest" | "oldest" | "nickname_asc" | "nickname_desc";
 
@@ -22,6 +23,10 @@ type DirectoryResponse = {
 
 type AuthMeResponse = {
   authenticated: boolean;
+};
+
+type HealthResponse = {
+  status: string;
 };
 
 type SearchParams = {
@@ -123,6 +128,24 @@ async function getDirectoryData({
   return response.json();
 }
 
+async function getApiHealth(): Promise<HealthResponse | null> {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/health`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function getAuthState(): Promise<AuthMeResponse | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
   const cookieStore = await cookies();
@@ -156,12 +179,18 @@ export default async function HomePage({
   const profileHref = "/settings/profile";
 
   let data: DirectoryResponse | null = null;
+  let isLoadingState = false;
   let loadError = false;
 
   try {
     data = await getDirectoryData({ sort, page, verified, q });
   } catch {
-    loadError = true;
+    const health = await getApiHealth();
+    if (health?.status === "ok") {
+      isLoadingState = true;
+    } else {
+      loadError = true;
+    }
   }
 
   const totalPages = Math.max(data?.total_pages ?? 0, 1);
@@ -231,17 +260,21 @@ export default async function HomePage({
           <div className="panel-header">
             <p className="panel-title">Directory</p>
             <p className="panel-meta">
-              {loadError
+              {isLoadingState
                 ? "Loading directory"
+                : loadError
+                ? "Directory unavailable"
                 : `${data?.total ?? 0} developers - ${sortLabels[sort]} - page ${page}`}
             </p>
           </div>
 
-          {loadError ? (
+          {isLoadingState ? (
+            <DirectoryLoadingState />
+          ) : loadError ? (
             <div className="empty-state">
-              <p>The directory is loading.</p>
+              <p>The directory could not be loaded.</p>
               <p className="empty-state-subtle">
-                Wait a moment, then refresh this page if it does not appear right away.
+                Please refresh this page and try again in a moment.
               </p>
             </div>
           ) : data && data.items.length > 0 ? (
