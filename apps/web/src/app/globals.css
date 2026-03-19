@@ -250,6 +250,16 @@ a {
   color: var(--muted);
 }
 
+.empty-state p {
+  margin: 0;
+}
+
+.empty-state-subtle {
+  margin-top: 8px !important;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
 .settings-shell {
   max-width: 860px;
 }

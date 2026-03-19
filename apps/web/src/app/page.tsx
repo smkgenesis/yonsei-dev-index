@@ -232,14 +232,18 @@ export default async function HomePage({
             <p className="panel-title">Directory</p>
             <p className="panel-meta">
               {loadError
-                ? "Directory unavailable"
+                ? "API may be waking up"
                 : `${data?.total ?? 0} developers - ${sortLabels[sort]} - page ${page}`}
             </p>
           </div>
 
           {loadError ? (
             <div className="empty-state">
-              <p>The directory could not be loaded from the API.</p>
+              <p>The API may be waking up on the free Render plan.</p>
+              <p className="empty-state-subtle">
+                Wait a moment, then refresh this page. The first request can be slow after idle
+                time.
+              </p>
             </div>
           ) : data && data.items.length > 0 ? (
             <>
