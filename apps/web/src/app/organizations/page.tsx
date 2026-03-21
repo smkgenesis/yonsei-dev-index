@@ -1,24 +1,23 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { DirectoryLoadingState } from "@/components/directory-loading-state";
 
-type SortOption = "newest" | "oldest" | "nickname_asc" | "nickname_desc";
+type OrganizationSortOption = "name_asc" | "name_desc" | "oldest" | "newest";
 
-type DirectoryItem = {
-  github_nickname: string;
-  github_link: string;
-  verified: boolean;
-  name: string | null;
-  major: string | null;
+type OrganizationItem = {
+  id: string;
+  name: string;
+  kind: string;
+  github_url: string;
+  one_liner: string;
 };
 
-type DirectoryResponse = {
-  items: DirectoryItem[];
+type OrganizationListResponse = {
+  items: OrganizationItem[];
   page: number;
   page_size: number;
   total: number;
   total_pages: number;
-  sort: SortOption;
+  sort: OrganizationSortOption;
 };
 
 type AuthMeResponse = {
@@ -28,22 +27,28 @@ type AuthMeResponse = {
 type SearchParams = {
   sort?: string;
   page?: string;
-  verified?: string;
   q?: string;
 };
 
-const sortLabels: Record<SortOption, string> = {
+const sortLabels: Record<OrganizationSortOption, string> = {
+  name_asc: "Name A-Z",
+  name_desc: "Name Z-A",
   newest: "Newest First",
   oldest: "Oldest First",
-  nickname_asc: "GitHub Nickname A-Z",
-  nickname_desc: "GitHub Nickname Z-A",
 };
 
-function normalizeSort(sort?: string): SortOption {
-  if (sort === "oldest" || sort === "nickname_asc" || sort === "nickname_desc") {
+const kindLabels: Record<string, string> = {
+  student_team: "Student Team",
+  campus_org: "Campus Org",
+  startup: "Startup",
+  external: "External",
+};
+
+function normalizeSort(sort?: string): OrganizationSortOption {
+  if (sort === "name_desc" || sort === "oldest" || sort === "newest") {
     return sort;
   }
-  return "newest";
+  return "name_asc";
 }
 
 function normalizePage(page?: string): number {
@@ -51,34 +56,20 @@ function normalizePage(page?: string): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
-function normalizeVerified(value?: string): boolean | undefined {
-  if (value === "true") {
-    return true;
-  }
-  if (value === "false") {
-    return false;
-  }
-  return undefined;
-}
-
 function buildQueryString(
   params: Partial<{
-    sort: SortOption;
+    sort: OrganizationSortOption;
     page: number;
-    verified: boolean | undefined;
     q: string;
   }>,
 ): string {
   const query = new URLSearchParams();
 
-  if (params.sort && params.sort !== "newest") {
+  if (params.sort && params.sort !== "name_asc") {
     query.set("sort", params.sort);
   }
   if (params.page && params.page > 1) {
     query.set("page", String(params.page));
-  }
-  if (params.verified === true) {
-    query.set("verified", "true");
   }
   if (params.q) {
     query.set("q", params.q);
@@ -88,37 +79,32 @@ function buildQueryString(
   return serialized ? `?${serialized}` : "";
 }
 
-async function getDirectoryData({
+async function getOrganizations({
   sort,
   page,
-  verified,
   q,
 }: {
-  sort: SortOption;
+  sort: OrganizationSortOption;
   page: number;
-  verified: boolean | undefined;
   q: string;
-}): Promise<DirectoryResponse> {
+}): Promise<OrganizationListResponse> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
   const params = new URLSearchParams({
     sort,
     page: String(page),
-    page_size: "50",
+    page_size: "25",
   });
 
-  if (verified === true) {
-    params.set("verified", "true");
-  }
   if (q) {
     params.set("q", q);
   }
 
-  const response = await fetch(`${apiBaseUrl}/developers?${params.toString()}`, {
+  const response = await fetch(`${apiBaseUrl}/organizations?${params.toString()}`, {
     cache: "no-store",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to load directory.");
+    throw new Error("Failed to load organizations.");
   }
 
   return response.json();
@@ -141,28 +127,26 @@ async function getAuthState(): Promise<AuthMeResponse | null> {
   return response.json();
 }
 
-export default async function HomePage({
+export default async function OrganizationsPage({
   searchParams,
 }: {
   searchParams?: SearchParams;
 }) {
   const sort = normalizeSort(searchParams?.sort);
   const page = normalizePage(searchParams?.page);
-  const verified = normalizeVerified(searchParams?.verified);
   const q = searchParams?.q?.trim() ?? "";
   const loginHref = `${
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
   }/auth/github/start`;
   const authState = await getAuthState();
-  const profileHref = "/settings/profile";
 
-  let data: DirectoryResponse | null = null;
-  let isLoadingState = false;
+  let data: OrganizationListResponse | null = null;
+  let loadError = false;
 
   try {
-    data = await getDirectoryData({ sort, page, verified, q });
+    data = await getOrganizations({ sort, page, q });
   } catch {
-    isLoadingState = true;
+    loadError = true;
   }
 
   const totalPages = Math.max(data?.total_pages ?? 0, 1);
@@ -173,22 +157,17 @@ export default async function HomePage({
         <header className="masthead">
           <div className="masthead-copy">
             <p className="eyebrow">ysdevidx.com</p>
-            <h1>Yonsei Dev Index</h1>
+            <h1>Organizations</h1>
             <p className="lede">
-              Register with GitHub, optionally verify your Yonsei email, and browse other Yonsei
-              developers through their GitHub profiles.
-            </p>
-            <p className="note">
-              Verified means the user confirmed control of a @yonsei.ac.kr email address. Name and
-              Major are optional self-reported fields.
+              Yonsei development-related organizations and their public GitHub pages.
             </p>
           </div>
           <div className="masthead-actions">
-            <Link className="secondary-button" href="/organizations">
-              Organization
+            <Link className="secondary-button" href="/">
+              People
             </Link>
             {authState?.authenticated ? (
-              <Link className="login-button" href={profileHref}>
+              <Link className="login-button" href="/settings/profile">
                 My Profile
               </Link>
             ) : (
@@ -200,7 +179,7 @@ export default async function HomePage({
         </header>
 
         <section className="panel controls-panel">
-          <form className="controls" action="/" method="get">
+          <form className="controls organizations-controls" action="/organizations" method="get">
             <label className="control">
               <span>Sort</span>
               <select name="sort" defaultValue={sort}>
@@ -217,14 +196,9 @@ export default async function HomePage({
               <input
                 type="search"
                 name="q"
-                placeholder="GitHub nickname, name, or major"
+                placeholder="Organization, GitHub link, or one-line"
                 defaultValue={q}
               />
-            </label>
-
-            <label className="checkbox-control">
-              <input type="checkbox" name="verified" value="true" defaultChecked={verified === true} />
-              <span>Verified only</span>
             </label>
 
             <button className="apply-button" type="submit">
@@ -235,55 +209,43 @@ export default async function HomePage({
 
         <section className="panel table-panel">
           <div className="panel-header">
-            <p className="panel-title">Directory</p>
+            <p className="panel-title">Organizations</p>
             <p className="panel-meta">
-              {isLoadingState
-                ? "Loading directory"
-                : `${data?.total ?? 0} developers - ${sortLabels[sort]} - page ${page}`}
+              {loadError
+                ? "Organizations unavailable"
+                : `${data?.total ?? 0} organizations - ${sortLabels[sort]} - page ${page}`}
             </p>
           </div>
 
-          {isLoadingState ? (
-            <DirectoryLoadingState />
+          {loadError ? (
+            <div className="empty-state">
+              <p>The organization list could not be loaded.</p>
+            </div>
           ) : data && data.items.length > 0 ? (
             <>
-              <div className="table-wrap">
-                <table className="directory-table">
-                  <thead>
-                    <tr>
-                      <th>GitHub Nickname</th>
-                      <th>GitHub Link</th>
-                      <th>Verified</th>
-                      <th>Name</th>
-                      <th>Major</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.items.map((item) => (
-                      <tr key={item.github_nickname}>
-                        <td>
-                          <a href={item.github_link} target="_blank" rel="noreferrer">
-                            {item.github_nickname}
-                          </a>
-                        </td>
-                        <td>
-                          <a href={item.github_link} target="_blank" rel="noreferrer">
-                            {item.github_link.replace(/^https?:\/\//, "")}
-                          </a>
-                        </td>
-                        <td>{item.verified ? "Verified" : "-"}</td>
-                        <td>{item.name ?? "-"}</td>
-                        <td>{item.major ?? "-"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="organization-list">
+                {data.items.map((organization) => (
+                  <article key={organization.id} className="organization-block">
+                    <div className="organization-topline">
+                      <div className="organization-heading">
+                        <h2>{organization.name}</h2>
+                        <span className="organization-kind">
+                          {kindLabels[organization.kind] ?? organization.kind}
+                        </span>
+                      </div>
+                      <a href={organization.github_url} target="_blank" rel="noreferrer">
+                        {organization.github_url.replace(/^https?:\/\//, "")}
+                      </a>
+                    </div>
+                    <p className="organization-oneliner">{organization.one_liner}</p>
+                  </article>
+                ))}
               </div>
 
               <nav className="pagination" aria-label="Pagination">
                 <Link
                   className={`page-link ${page <= 1 ? "disabled" : ""}`}
-                  href={buildQueryString({ sort, page: Math.max(1, page - 1), verified, q })}
+                  href={buildQueryString({ sort, page: Math.max(1, page - 1), q })}
                   aria-disabled={page <= 1}
                 >
                   Previous
@@ -293,12 +255,7 @@ export default async function HomePage({
                 </span>
                 <Link
                   className={`page-link ${data.page >= totalPages ? "disabled" : ""}`}
-                  href={buildQueryString({
-                    sort,
-                    page: Math.min(totalPages, page + 1),
-                    verified,
-                    q,
-                  })}
+                  href={buildQueryString({ sort, page: Math.min(totalPages, page + 1), q })}
                   aria-disabled={data.page >= totalPages}
                 >
                   Next
@@ -307,7 +264,7 @@ export default async function HomePage({
             </>
           ) : (
             <div className="empty-state">
-              <p>No public developers matched the current view.</p>
+              <p>No organizations matched the current view.</p>
             </div>
           )}
         </section>

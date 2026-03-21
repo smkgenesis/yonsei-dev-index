@@ -170,6 +170,8 @@ npm run build
 - [Implementation Spec](docs/implementation-spec.md)
 - [Technical Spec](docs/technical-spec.md)
 - [Local Development](docs/local-development.md)
+- [Release Notes 1.0.0](docs/releases/1.0.0.md)
+- [Release Notes 1.0.1](docs/releases/1.0.1.md)
 
 ---
 

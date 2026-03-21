@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.session import SessionModel
 from app.models.user import User
+from app.schemas.organization import OrganizationListResponse
 from app.schemas.profile import ProfileResponse, ProfileUpdateRequest
 from app.schemas.verification import (
     VerificationConfirmPayload,
@@ -25,6 +26,7 @@ from app.services.auth_service import (
     upsert_user_from_github,
 )
 from app.services.directory_service import SortOption, list_developers
+from app.services.organization_service import OrganizationSortOption, list_organizations
 from app.services.profile_service import serialize_profile, update_profile
 from app.services.session_service import (
     clear_oauth_state_cookie,
@@ -153,6 +155,23 @@ def developers(
         page=page,
         page_size=page_size,
         verified=verified,
+        q=q,
+    )
+
+
+@router.get("/organizations", response_model=OrganizationListResponse)
+def organizations(
+    sort: OrganizationSortOption = Query(default="name_asc"),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=25, ge=1, le=100),
+    q: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    return list_organizations(
+        db,
+        sort=sort,
+        page=page,
+        page_size=page_size,
         q=q,
     )
 

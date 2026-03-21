@@ -26,7 +26,11 @@ type ProfileFormState = {
   show_major: boolean;
 };
 
-export function ProfileSettingsForm({ initialProfile }: { initialProfile: ProfileResponse }) {
+export function ProfileSettingsForm({
+  initialProfile,
+}: {
+  initialProfile: ProfileResponse;
+}) {
   const [profile, setProfile] = useState<ProfileResponse | null>(initialProfile);
   const [form, setForm] = useState<ProfileFormState>({
     real_name: initialProfile.real_name ?? "",

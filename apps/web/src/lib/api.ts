@@ -64,6 +64,12 @@ function toUserFriendlyMessage(message: string): string {
   if (message.includes("Failed to send verification email")) {
     return "Failed to send verification email. Please try again in a moment.";
   }
+  if (message.includes("Verification request could not be completed")) {
+    return "Verification request could not be completed. Please wait and try again.";
+  }
+  if (message.includes("Verification could not be completed")) {
+    return "Verification could not be completed. Check your email and code, then try again.";
+  }
   if (message.includes("Only @yonsei.ac.kr email addresses are allowed")) {
     return "Only @yonsei.ac.kr email addresses are allowed.";
   }

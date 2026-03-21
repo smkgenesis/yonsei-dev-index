@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     verification_max_attempts: int = 5
     verification_request_cooldown_seconds: int = 60
     verification_request_max_per_day: int = 5
+    verification_request_max_per_email_per_day: int = 3
     profile_update_max_per_day: int = 5
 
     model_config = SettingsConfigDict(

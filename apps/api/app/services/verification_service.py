@@ -15,6 +15,8 @@ from app.services.email_service import send_verification_email
 
 VERIFICATION_NOTICE = "Verification only confirms control of a @yonsei.ac.kr email address."
 ALLOWED_DOMAIN = "@yonsei.ac.kr"
+GENERIC_REQUEST_ERROR = "Verification request could not be completed."
+GENERIC_CONFIRM_ERROR = "Verification could not be completed."
 
 
 def _utcnow() -> datetime:
@@ -73,6 +75,15 @@ def _count_recent_requests_for_user(db: Session, user_id, now: datetime) -> int:
     return db.scalar(stmt) or 0
 
 
+def _count_recent_requests_for_email(db: Session, email: str, now: datetime) -> int:
+    window_start = now - timedelta(days=1)
+    stmt = select(func.count()).where(
+        VerificationRequest.yonsei_email == email,
+        VerificationRequest.created_at >= window_start,
+    )
+    return db.scalar(stmt) or 0
+
+
 def _ensure_email_is_available(db: Session, user: User, email: str) -> None:
     stmt = select(Verification).where(
         Verification.verified_email == email,
@@ -82,7 +93,7 @@ def _ensure_email_is_available(db: Session, user: User, email: str) -> None:
     if existing is not None and existing.user_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="This Yonsei email is already verified by another account.",
+            detail=GENERIC_REQUEST_ERROR,
         )
 
 
@@ -97,17 +108,21 @@ def request_verification_code(db: Session, user: User, email: str) -> dict[str, 
         if latest_for_email.created_at + cooldown > now:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Please wait before requesting another code for this email.",
+                detail=GENERIC_REQUEST_ERROR,
             )
 
     recent_request_count = _count_recent_requests_for_user(db, user.id, now)
     if recent_request_count >= settings.verification_request_max_per_day:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=(
-                f"Verification codes can only be requested "
-                f"{settings.verification_request_max_per_day} times per day."
-            ),
+            detail=GENERIC_REQUEST_ERROR,
+        )
+
+    recent_email_request_count = _count_recent_requests_for_email(db, normalized_email, now)
+    if recent_email_request_count >= settings.verification_request_max_per_email_per_day:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=GENERIC_REQUEST_ERROR,
         )
 
     existing = _get_pending_request(db, user.id)
@@ -117,7 +132,7 @@ def request_verification_code(db: Session, user: User, email: str) -> dict[str, 
         if existing.created_at + cooldown > now:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Please wait before requesting another code.",
+                detail=GENERIC_REQUEST_ERROR,
             )
         existing.status = "superseded"
 
@@ -139,7 +154,7 @@ def request_verification_code(db: Session, user: User, email: str) -> dict[str, 
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to send verification email.",
+            detail=GENERIC_REQUEST_ERROR,
         ) from exc
 
     db.commit()
@@ -155,7 +170,7 @@ def confirm_verification_code(db: Session, user: User, email: str, code: str) ->
     if verification_request is None or verification_request.yonsei_email != normalized_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No active verification request for this email.",
+            detail=GENERIC_CONFIRM_ERROR,
         )
 
     if verification_request.expires_at <= now:
@@ -163,7 +178,7 @@ def confirm_verification_code(db: Session, user: User, email: str, code: str) ->
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Verification code expired.",
+            detail=GENERIC_CONFIRM_ERROR,
         )
 
     verification_request.attempt_count += 1
@@ -172,7 +187,7 @@ def confirm_verification_code(db: Session, user: User, email: str, code: str) ->
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many verification attempts.",
+            detail=GENERIC_CONFIRM_ERROR,
         )
 
     if verification_request.code_hash != _hash_code(normalized_code):
@@ -181,7 +196,7 @@ def confirm_verification_code(db: Session, user: User, email: str, code: str) ->
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code.",
+            detail=GENERIC_CONFIRM_ERROR,
         )
 
     verification_request.status = "verified"
