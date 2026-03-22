@@ -18,6 +18,7 @@ type ProfileResponse = {
 
 export default async function ProfileSettingsPage() {
   const profile = await serverApiFetch<ProfileResponse>("/me/profile");
+  const access = await serverApiFetch<{ ok: boolean; is_admin: boolean }>("/me/access");
 
   return (
     <main className="page">
@@ -25,6 +26,9 @@ export default async function ProfileSettingsPage() {
         <header className="settings-header compact">
           <h1>My Profile</h1>
           <nav className="settings-nav" aria-label="Settings navigation">
+            {access.is_admin ? (
+              <Link href="/settings/admin/organizations">Organization Admin</Link>
+            ) : null}
             <Link href="/">Back to directory</Link>
           </nav>
         </header>
