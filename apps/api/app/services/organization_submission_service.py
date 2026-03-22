@@ -90,7 +90,7 @@ def list_submissions(db: Session) -> dict[str, list[OrganizationSubmissionItemRe
             desc(OrganizationSubmission.created_at),
         )
     )
-    rows = db.scalars(stmt).all()
+    rows = db.execute(stmt).unique().scalars().all()
     return {"items": [_serialize_submission(row) for row in rows]}
 
 
