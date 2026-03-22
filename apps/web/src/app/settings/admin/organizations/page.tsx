@@ -12,6 +12,7 @@ type SubmissionItem = {
   one_liner: string;
   additional_context: string | null;
   status: string;
+  review_note: string | null;
   created_at: string;
   applicant_github_nickname: string | null;
 };
