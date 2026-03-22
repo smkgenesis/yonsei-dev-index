@@ -163,6 +163,7 @@ npm run build
 ### Related Docs
 
 - [Architecture](docs/architecture.md)
+- [B2B Product Direction](docs/b2b-product-direction.md)
 - [Implementation Spec](docs/implementation-spec.md)
 - [Technical Spec](docs/technical-spec.md)
 - [Local Development](docs/local-development.md)
@@ -326,6 +327,7 @@ npm run build
 ### 관련 문서
 
 - [Architecture](docs/architecture.md)
+- [B2B Product Direction](docs/b2b-product-direction.md)
 - [Implementation Spec](docs/implementation-spec.md)
 - [Technical Spec](docs/technical-spec.md)
 - [Local Development](docs/local-development.md)
