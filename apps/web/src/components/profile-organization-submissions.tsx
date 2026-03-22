@@ -46,11 +46,13 @@ export function ProfileOrganizationSubmissions({
               <article key={item.id} className="submission-block">
                 <div className="submission-header">
                   <div>
-                    <h2>{item.name}</h2>
-                    <p className="submission-meta">
-                      {kindLabels[item.kind] ?? item.kind} /{" "}
-                      {statusLabels[item.status] ?? item.status}
-                    </p>
+                    <div className="organization-heading">
+                      <h2>{item.name}</h2>
+                      <span className={`submission-status submission-status-${item.status}`}>
+                        {statusLabels[item.status] ?? item.status}
+                      </span>
+                    </div>
+                    <p className="submission-meta">{kindLabels[item.kind] ?? item.kind}</p>
                   </div>
                   <a href={item.github_url} target="_blank" rel="noreferrer">
                     {item.github_url.replace(/^https?:\/\//, "")}

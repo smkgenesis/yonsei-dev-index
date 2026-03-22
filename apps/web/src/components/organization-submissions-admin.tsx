@@ -114,13 +114,17 @@ export function OrganizationSubmissionsAdmin({
           ) : (
             <div className="submission-list">
               {items.map((item) => (
-                <article key={item.id} className="submission-block">
-                  <div className="submission-header">
-                    <div>
-                      <h2>{item.name}</h2>
+              <article key={item.id} className="submission-block">
+                <div className="submission-header">
+                  <div>
+                      <div className="organization-heading">
+                        <h2>{item.name}</h2>
+                        <span className={`submission-status submission-status-${item.status}`}>
+                          {statusLabels[item.status] ?? item.status}
+                        </span>
+                      </div>
                       <p className="submission-meta">
-                        {kindLabels[item.kind] ?? item.kind} /{" "}
-                        {statusLabels[item.status] ?? item.status} / by{" "}
+                        {kindLabels[item.kind] ?? item.kind} / by{" "}
                         {item.applicant_github_nickname ?? "unknown"}
                       </p>
                     </div>

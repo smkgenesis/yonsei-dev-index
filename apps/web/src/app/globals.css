@@ -344,6 +344,35 @@ a {
   font-size: 0.92rem;
 }
 
+.submission-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.submission-status-pending {
+  border-color: #a48828;
+  background: #f7efcf;
+  color: #705c10;
+}
+
+.submission-status-approved {
+  border-color: #2f5d30;
+  background: #e6f0e2;
+  color: #234523;
+}
+
+.submission-status-rejected {
+  border-color: #8e211a;
+  background: #f3d8d3;
+  color: #701a15;
+}
+
 .submission-context {
   margin: 10px 0 14px;
   color: var(--muted);
