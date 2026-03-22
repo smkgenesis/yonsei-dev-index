@@ -47,6 +47,7 @@ class OrganizationSubmission(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     one_liner: Mapped[str] = mapped_column(Text, nullable=False)
     additional_context: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, server_default="pending")
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     applicant_user: Mapped["User"] = relationship(

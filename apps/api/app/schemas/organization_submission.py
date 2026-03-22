@@ -47,6 +47,7 @@ class OrganizationSubmissionItemResponse(BaseModel):
     one_liner: str
     additional_context: str | None
     status: str
+    review_note: str | None
     created_at: datetime
     applicant_github_nickname: str | None
 

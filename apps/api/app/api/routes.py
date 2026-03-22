@@ -24,6 +24,7 @@ from app.schemas.organization_submission import (
     OrganizationSubmissionCreateRequest,
     OrganizationSubmissionItemResponse,
     OrganizationSubmissionListResponse,
+    OrganizationSubmissionReviewRequest,
 )
 from app.schemas.profile import ProfileResponse, ProfileUpdateRequest
 from app.schemas.verification import (
@@ -42,6 +43,7 @@ from app.services.organization_service import OrganizationSortOption, list_organ
 from app.services.organization_submission_service import (
     approve_submission,
     create_submission,
+    list_my_submissions,
     list_submissions,
     reject_submission,
 )
@@ -215,6 +217,17 @@ def get_organization_submissions(
     return list_submissions(db)
 
 
+@router.get(
+    "/me/organization-submissions",
+    response_model=OrganizationSubmissionListResponse,
+)
+def get_my_organization_submissions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_current_user),
+) -> dict[str, list[OrganizationSubmissionItemResponse]]:
+    return list_my_submissions(db, current_user=current_user)
+
+
 @router.post(
     "/admin/organization-submissions/{submission_id}/approve",
     response_model=OrganizationSubmissionItemResponse,
@@ -233,10 +246,16 @@ def post_approve_submission(
 )
 def post_reject_submission(
     submission_id: UUID,
+    payload: OrganizationSubmissionReviewRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin_user),
 ) -> OrganizationSubmissionItemResponse:
-    return reject_submission(db, submission_id=str(submission_id), reviewer=current_user)
+    return reject_submission(
+        db,
+        submission_id=str(submission_id),
+        reviewer=current_user,
+        payload=payload,
+    )
 
 
 @router.get("/me/profile", response_model=ProfileResponse)

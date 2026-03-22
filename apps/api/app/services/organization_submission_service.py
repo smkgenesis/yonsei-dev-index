@@ -10,6 +10,7 @@ from app.models.user import Organization, OrganizationSubmission, User
 from app.schemas.organization_submission import (
     OrganizationSubmissionCreateRequest,
     OrganizationSubmissionItemResponse,
+    OrganizationSubmissionReviewRequest,
 )
 
 
@@ -31,6 +32,7 @@ def _serialize_submission(submission: OrganizationSubmission) -> OrganizationSub
         one_liner=submission.one_liner,
         additional_context=submission.additional_context,
         status=submission.status,
+        review_note=submission.review_note,
         created_at=submission.created_at,
         applicant_github_nickname=applicant_nickname,
     )
@@ -94,6 +96,23 @@ def list_submissions(db: Session) -> dict[str, list[OrganizationSubmissionItemRe
     return {"items": [_serialize_submission(row) for row in rows]}
 
 
+def list_my_submissions(
+    db: Session,
+    *,
+    current_user: User,
+) -> dict[str, list[OrganizationSubmissionItemResponse]]:
+    stmt = (
+        select(OrganizationSubmission)
+        .options(
+            joinedload(OrganizationSubmission.applicant_user).joinedload(User.oauth_accounts),
+        )
+        .where(OrganizationSubmission.applicant_user_id == current_user.id)
+        .order_by(desc(OrganizationSubmission.created_at))
+    )
+    rows = db.execute(stmt).unique().scalars().all()
+    return {"items": [_serialize_submission(row) for row in rows]}
+
+
 def approve_submission(
     db: Session,
     *,
@@ -134,6 +153,7 @@ def approve_submission(
     db.add(organization)
 
     submission.status = "approved"
+    submission.review_note = None
     submission.reviewed_at = _utcnow()
     submission.reviewer_user_id = reviewer.id
 
@@ -147,6 +167,7 @@ def reject_submission(
     *,
     submission_id: str,
     reviewer: User,
+    payload: OrganizationSubmissionReviewRequest,
 ) -> OrganizationSubmissionItemResponse:
     stmt = (
         select(OrganizationSubmission)
@@ -164,6 +185,7 @@ def reject_submission(
         )
 
     submission.status = "rejected"
+    submission.review_note = payload.review_note
     submission.reviewed_at = _utcnow()
     submission.reviewer_user_id = reviewer.id
     db.commit()

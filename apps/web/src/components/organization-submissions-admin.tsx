@@ -11,6 +11,7 @@ type SubmissionItem = {
   one_liner: string;
   additional_context: string | null;
   status: string;
+  review_note: string | null;
   created_at: string;
   applicant_github_nickname: string | null;
 };
@@ -24,6 +25,12 @@ const kindLabels: Record<string, string> = {
   campus_org: "Campus Org",
   startup: "Startup",
   external: "External",
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Declined",
 };
 
 export function OrganizationSubmissionsAdmin({
@@ -63,6 +70,11 @@ export function OrganizationSubmissionsAdmin({
   }
 
   async function handleReject(id: string) {
+    const reviewNote = window.prompt("Optional decline note for the applicant:", "");
+    if (reviewNote === null) {
+      return;
+    }
+
     setBusyId(id);
     setError(null);
     setMessage(null);
@@ -72,6 +84,7 @@ export function OrganizationSubmissionsAdmin({
         `/admin/organization-submissions/${id}/reject`,
         {
           method: "POST",
+          body: JSON.stringify({ review_note: reviewNote }),
         },
       );
       setMessage(`${submission.name} rejected.`);
@@ -106,7 +119,8 @@ export function OrganizationSubmissionsAdmin({
                     <div>
                       <h2>{item.name}</h2>
                       <p className="submission-meta">
-                        {kindLabels[item.kind] ?? item.kind} · {item.status} · by{" "}
+                        {kindLabels[item.kind] ?? item.kind} /{" "}
+                        {statusLabels[item.status] ?? item.status} / by{" "}
                         {item.applicant_github_nickname ?? "unknown"}
                       </p>
                     </div>
@@ -117,6 +131,9 @@ export function OrganizationSubmissionsAdmin({
                   <p className="organization-oneliner">{item.one_liner}</p>
                   {item.additional_context ? (
                     <p className="submission-context">{item.additional_context}</p>
+                  ) : null}
+                  {item.review_note ? (
+                    <p className="submission-context">Decline note: {item.review_note}</p>
                   ) : null}
                   {item.status === "pending" ? (
                     <div className="inline-actions">
