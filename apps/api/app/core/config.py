@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     github_oauth_token_url: str = "https://github.com/login/oauth/access_token"
     github_api_user_url: str = "https://api.github.com/user"
     github_oauth_scope: str = "read:user"
+    admin_github_usernames: str = ""
     email_from: str = "no-reply@ysdevidx.com"
     email_provider_api_key: str = ""
     verification_code_ttl_minutes: int = 10
@@ -34,6 +35,14 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    @property
+    def admin_github_username_set(self) -> set[str]:
+        return {
+            username.strip().lower()
+            for username in self.admin_github_usernames.split(",")
+            if username.strip()
+        }
 
 
 settings = Settings()

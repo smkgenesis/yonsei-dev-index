@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response, status
@@ -7,12 +8,23 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, hash_session_token, require_current_user
+from app.api.deps import (
+    get_current_user,
+    hash_session_token,
+    is_admin_user,
+    require_admin_user,
+    require_current_user,
+)
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.session import SessionModel
 from app.models.user import User
 from app.schemas.organization import OrganizationListResponse
+from app.schemas.organization_submission import (
+    OrganizationSubmissionCreateRequest,
+    OrganizationSubmissionItemResponse,
+    OrganizationSubmissionListResponse,
+)
 from app.schemas.profile import ProfileResponse, ProfileUpdateRequest
 from app.schemas.verification import (
     VerificationConfirmPayload,
@@ -27,6 +39,12 @@ from app.services.auth_service import (
 )
 from app.services.directory_service import SortOption, list_developers
 from app.services.organization_service import OrganizationSortOption, list_organizations
+from app.services.organization_submission_service import (
+    approve_submission,
+    create_submission,
+    list_submissions,
+    reject_submission,
+)
 from app.services.profile_service import serialize_profile, update_profile
 from app.services.session_service import (
     clear_oauth_state_cookie,
@@ -127,6 +145,7 @@ def auth_me(current_user: User | None = Depends(get_current_user)) -> dict[str, 
 
     return {
         "authenticated": True,
+        "is_admin": is_admin_user(current_user),
         "user": {
             "github_nickname": oauth_account.github_username if oauth_account else None,
             "github_link": oauth_account.github_url if oauth_account else None,
@@ -176,9 +195,58 @@ def organizations(
     )
 
 
+@router.post("/organization-submissions", response_model=OrganizationSubmissionItemResponse)
+def create_organization_submission(
+    payload: OrganizationSubmissionCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_current_user),
+) -> OrganizationSubmissionItemResponse:
+    return create_submission(db, current_user, payload)
+
+
+@router.get(
+    "/admin/organization-submissions",
+    response_model=OrganizationSubmissionListResponse,
+)
+def get_organization_submissions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+) -> dict[str, list[OrganizationSubmissionItemResponse]]:
+    return list_submissions(db)
+
+
+@router.post(
+    "/admin/organization-submissions/{submission_id}/approve",
+    response_model=OrganizationSubmissionItemResponse,
+)
+def post_approve_submission(
+    submission_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+) -> OrganizationSubmissionItemResponse:
+    return approve_submission(db, submission_id=str(submission_id), reviewer=current_user)
+
+
+@router.post(
+    "/admin/organization-submissions/{submission_id}/reject",
+    response_model=OrganizationSubmissionItemResponse,
+)
+def post_reject_submission(
+    submission_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin_user),
+) -> OrganizationSubmissionItemResponse:
+    return reject_submission(db, submission_id=str(submission_id), reviewer=current_user)
+
+
 @router.get("/me/profile", response_model=ProfileResponse)
 def get_my_profile(current_user: User = Depends(require_current_user)) -> ProfileResponse:
     return serialize_profile(current_user)
+
+
+@router.get("/me/access")
+def get_my_access(current_user: User = Depends(require_current_user)) -> dict[str, object]:
+    return {"ok": True, "is_admin": is_admin_user(current_user)}
 
 
 @router.patch("/me/profile", response_model=ProfileResponse)

@@ -26,6 +26,7 @@ type OrganizationListResponse = {
 
 type AuthMeResponse = {
   authenticated: boolean;
+  is_admin?: boolean;
 };
 
 const sortLabels: Record<OrganizationSortOption, string> = {
@@ -178,6 +179,16 @@ export function OrganizationsPageClient({
             <Link className="secondary-button" href="/">
               People
             </Link>
+            {authState?.authenticated ? (
+              <Link className="secondary-button" href="/organizations/new">
+                Add Organization
+              </Link>
+            ) : null}
+            {authState?.is_admin ? (
+              <Link className="secondary-button" href="/settings/admin/organizations">
+                Review Requests
+              </Link>
+            ) : null}
             {authState?.authenticated ? (
               <Link className="login-button" href="/settings/profile">
                 My Profile

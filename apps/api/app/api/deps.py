@@ -60,3 +60,22 @@ def require_current_user(current_user: User | None = Depends(get_current_user)) 
             detail="Authentication required.",
         )
     return current_user
+
+
+def is_admin_user(user: User) -> bool:
+    admin_usernames = settings.admin_github_username_set
+    if not admin_usernames:
+        return False
+
+    return any(
+        oauth_account.github_username.lower() in admin_usernames for oauth_account in user.oauth_accounts
+    )
+
+
+def require_admin_user(current_user: User = Depends(require_current_user)) -> User:
+    if not is_admin_user(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required.",
+        )
+    return current_user

@@ -2,6 +2,7 @@ from app.models.session import SessionModel
 from app.models.user import (
     OAuthAccount,
     Organization,
+    OrganizationSubmission,
     Profile,
     User,
     Verification,
@@ -11,6 +12,7 @@ from app.models.user import (
 __all__ = [
     "OAuthAccount",
     "Organization",
+    "OrganizationSubmission",
     "Profile",
     "SessionModel",
     "User",

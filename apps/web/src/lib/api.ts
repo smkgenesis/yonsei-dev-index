@@ -91,6 +91,27 @@ function toUserFriendlyMessage(message: string): string {
   if (message.includes("Authentication required")) {
     return "Your session expired. Sign in with GitHub again.";
   }
+  if (message.includes("Admin access required")) {
+    return "This page is only available to an admin account.";
+  }
+  if (message.includes("This organization is already listed")) {
+    return "This organization is already listed.";
+  }
+  if (message.includes("A pending request already exists for this organization")) {
+    return "A pending request already exists for this organization.";
+  }
+  if (message.includes("GitHub URL must start with https://github.com/")) {
+    return "GitHub URL must start with https://github.com/.";
+  }
+  if (message.includes("Invalid organization kind")) {
+    return "Choose a valid organization kind.";
+  }
+  if (message.includes("Only pending submissions can be approved")) {
+    return "Only pending requests can be approved.";
+  }
+  if (message.includes("Only pending submissions can be rejected")) {
+    return "Only pending requests can be rejected.";
+  }
   return message;
 }
 

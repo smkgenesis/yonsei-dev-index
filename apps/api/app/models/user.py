@@ -32,6 +32,34 @@ class Organization(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __table_args__ = (Index("ix_organizations_created_at", "created_at"),)
 
 
+class OrganizationSubmission(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "organization_submissions"
+
+    applicant_user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    reviewer_user_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    github_url: Mapped[str] = mapped_column(Text, nullable=False)
+    one_liner: Mapped[str] = mapped_column(Text, nullable=False)
+    additional_context: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, server_default="pending")
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    applicant_user: Mapped["User"] = relationship(
+        foreign_keys=[applicant_user_id], back_populates="organization_submissions"
+    )
+    reviewer_user: Mapped["User | None"] = relationship(foreign_keys=[reviewer_user_id])
+
+    __table_args__ = (
+        Index("ix_organization_submissions_status", "status"),
+        Index("ix_organization_submissions_created_at", "created_at"),
+    )
+
+
 class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "users"
 
@@ -62,6 +90,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     sessions: Mapped[list["SessionModel"]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    organization_submissions: Mapped[list["OrganizationSubmission"]] = relationship(
+        foreign_keys=[OrganizationSubmission.applicant_user_id],
+        back_populates="applicant_user",
         cascade="all, delete-orphan",
     )
 
