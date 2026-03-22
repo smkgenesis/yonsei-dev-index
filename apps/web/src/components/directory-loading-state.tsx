@@ -7,7 +7,11 @@ import { apiBaseUrl } from "@/lib/api";
 const HEALTH_POLL_MS = 5000;
 const MAX_LOADING_MS = 65000;
 
-export function DirectoryLoadingState() {
+export function DirectoryLoadingState({
+  label = "The directory",
+}: {
+  label?: string;
+}) {
   const router = useRouter();
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const healthUrl = useMemo(() => `${apiBaseUrl}/health`, []);
@@ -50,11 +54,11 @@ export function DirectoryLoadingState() {
 
   return (
     <div className="empty-state">
-      <p>{hasTimedOut ? "The directory is still loading." : "The directory is loading."}</p>
+      <p>{hasTimedOut ? `${label} is still loading.` : `${label} is loading.`}</p>
       <p className="empty-state-subtle">
         {hasTimedOut
           ? "Please wait a bit longer, then refresh this page if it still does not appear."
-          : "This page will refresh automatically as soon as the directory is ready."}
+          : "This page will refresh automatically as soon as the content is ready."}
       </p>
     </div>
   );
