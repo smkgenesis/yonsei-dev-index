@@ -184,11 +184,6 @@ export function OrganizationsPageClient({
                 Add Organization
               </Link>
             ) : null}
-            {authState?.is_admin ? (
-              <Link className="secondary-button" href="/settings/admin/organizations">
-                Review Requests
-              </Link>
-            ) : null}
             {authState?.authenticated ? (
               <Link className="login-button" href="/settings/profile">
                 My Profile
