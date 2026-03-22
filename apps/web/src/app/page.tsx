@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 import { DirectoryPageClient } from "@/components/directory-page-client";
 
 type SortOption = "newest" | "oldest" | "nickname_asc" | "nickname_desc";
@@ -31,13 +33,16 @@ function normalizeVerified(value?: string): boolean | undefined {
   return undefined;
 }
 
-export default function HomePage({
+export default async function HomePage({
   searchParams,
 }: {
   searchParams?: SearchParams;
 }) {
+  const cookieStore = await cookies();
+
   return (
     <DirectoryPageClient
+      initialAuthenticated={cookieStore.has("ysdi_session")}
       initialPage={normalizePage(searchParams?.page)}
       initialQuery={searchParams?.q?.trim() ?? ""}
       initialSort={normalizeSort(searchParams?.sort)}

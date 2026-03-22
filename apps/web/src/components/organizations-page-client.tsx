@@ -67,15 +67,19 @@ function buildQueryString(
 }
 
 export function OrganizationsPageClient({
+  initialAuthenticated,
   initialSort,
   initialPage,
   initialQuery,
 }: {
+  initialAuthenticated: boolean;
   initialSort: OrganizationSortOption;
   initialPage: number;
   initialQuery: string;
 }) {
-  const [authState, setAuthState] = useState<AuthMeResponse | null>(null);
+  const [authState, setAuthState] = useState<AuthMeResponse | null>(
+    initialAuthenticated ? { authenticated: true } : null,
+  );
   const [organizations, setOrganizations] = useState<OrganizationListResponse | null>(null);
   const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(true);
 

@@ -63,17 +63,21 @@ function buildQueryString(
 }
 
 export function DirectoryPageClient({
+  initialAuthenticated,
   initialSort,
   initialPage,
   initialVerified,
   initialQuery,
 }: {
+  initialAuthenticated: boolean;
   initialSort: SortOption;
   initialPage: number;
   initialVerified: boolean | undefined;
   initialQuery: string;
 }) {
-  const [authState, setAuthState] = useState<AuthMeResponse | null>(null);
+  const [authState, setAuthState] = useState<AuthMeResponse | null>(
+    initialAuthenticated ? { authenticated: true } : null,
+  );
   const [directory, setDirectory] = useState<DirectoryResponse | null>(null);
   const [isLoadingDirectory, setIsLoadingDirectory] = useState(true);
 
