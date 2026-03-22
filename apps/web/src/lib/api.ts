@@ -103,8 +103,38 @@ function toUserFriendlyMessage(message: string): string {
   if (message.includes("GitHub URL must start with https://github.com/")) {
     return "GitHub URL must start with https://github.com/.";
   }
+  if (message.includes("GitHub URL must not include query strings or fragments")) {
+    return "GitHub URL cannot include query strings or fragments.";
+  }
+  if (message.includes("GitHub URL must point to a single GitHub user or organization")) {
+    return "Enter a GitHub profile or organization URL, not a repository URL.";
+  }
+  if (message.includes("GitHub URL must use a valid GitHub account or organization slug")) {
+    return "Enter a valid GitHub profile or organization URL.";
+  }
   if (message.includes("Invalid organization kind")) {
     return "Choose a valid organization kind.";
+  }
+  if (message.includes("name must not contain HTML-like or bracket characters")) {
+    return "Organization name cannot contain HTML-like bracket characters.";
+  }
+  if (message.includes("name must not contain links")) {
+    return "Organization name cannot contain links.";
+  }
+  if (message.includes("name may only contain Korean, English, numbers, spaces, and basic punctuation")) {
+    return "Organization name can only contain Korean, English, numbers, spaces, and basic punctuation.";
+  }
+  if (message.includes("one_liner must not contain HTML-like or bracket characters")) {
+    return "One-line description cannot contain HTML-like bracket characters.";
+  }
+  if (message.includes("one_liner must not contain links")) {
+    return "One-line description cannot contain links.";
+  }
+  if (message.includes("additional_context must not contain HTML-like or bracket characters")) {
+    return "Additional context cannot contain HTML-like bracket characters.";
+  }
+  if (message.includes("additional_context must not contain links")) {
+    return "Additional context cannot contain links.";
   }
   if (message.includes("Only pending submissions can be approved")) {
     return "Only pending requests can be approved.";
